@@ -123,4 +123,3 @@ To write and run your new test, follow these steps:
 
 .. cookiecutter: https://github.com/mishamsk/cookiecutter-pypackage
 .. git: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
-

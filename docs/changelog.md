@@ -51,5 +51,3 @@ First release, based on https://github.com/waynerv/cookiecutter-pypackage with t
 
 - Removed deprecated pytest-cookie calls from tests and fixed click test
 - Codecov
-
-

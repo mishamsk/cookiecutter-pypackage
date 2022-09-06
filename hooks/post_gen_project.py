@@ -91,7 +91,7 @@ def poetry_add_dependencies(use_click: bool, use_mypy: bool):
 
 def install_pre_commit_hooks():
     execute("poetry", "install", cwd=PROJECT_DIRECTORY)
-    execute("poetry", "run", "pre_commit", "install", cwd=PROJECT_DIRECTORY)
+    execute("poetry", "run", "pre-commit", "install", cwd=PROJECT_DIRECTORY)
 
 
 if __name__ == "__main__":
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     add_deps = "{{ cookiecutter.newest_deps }}" == "y"
 
     if not use_click:
-        cli_file = os.path.join("{{ cookiecutter.pkg_name }}", "cli.py")
+        cli_file = os.path.join("src", "{{ cookiecutter.pkg_name }}", "cli.py")
         remove_file(cli_file)
 
     if not cicd == "all":

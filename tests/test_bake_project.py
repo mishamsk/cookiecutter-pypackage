@@ -1,5 +1,6 @@
 import datetime
 import os
+from pathlib import Path
 import shlex
 import subprocess
 import sys
@@ -97,24 +98,27 @@ def test_year_compute_in_license_file(cookies: Cookies):
 
 
 def project_info(result):
-    """Get toplevel dir, project_slug, and project dir from baked cookies"""
+    """Get toplevel dir, project_slug, and package dir from baked cookies"""
     project_path = str(result.project_path)
     project_slug = os.path.split(project_path)[-1]
-    project_dir = os.path.join(project_path, project_slug.replace("-", "_"))
-    return project_path, project_slug, project_dir
+    package_dir = os.path.join(project_path, "src", project_slug.replace("-", "_"))
+    return project_path, project_slug, package_dir
 
 
 def test_bake_with_defaults(cookies: Cookies):
     with bake_in_temp_dir(cookies) as result:
+        assert result.project_path
         assert result.project_path.is_dir()
         assert result.exit_code == 0
         assert result.exception is None
 
         found_toplevel_files = [f.name for f in result.project_path.iterdir()]
         assert _DEPENDENCY_FILE in found_toplevel_files
-        assert "python_boilerplate" in found_toplevel_files
         assert "setup.cfg" in found_toplevel_files
         assert "tests" in found_toplevel_files
+        assert "src" in found_toplevel_files
+
+        assert (result.project_path / "src" / "python_boilerplate").exists()
 
         mkdocs_yml = os.path.join(result._project_dir, "mkdocs.yml")
         with open(mkdocs_yml, "r") as f:
@@ -171,9 +175,8 @@ def test_docstrings_style(cookies: Cookies):
 def test_bake_with_no_console_script(cookies: Cookies, args):
     context, is_present = args
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
-    found_project_files = os.listdir(project_dir)
-    assert ("cli.py" in found_project_files) == is_present
+    project_path, project_slug, package_dir = project_info(result)
+    assert (Path(package_dir) / "cli.py").exists() == is_present
 
     pyproject_path = os.path.join(project_path, _DEPENDENCY_FILE)
     with open(pyproject_path, "r") as pyproject_file:
@@ -183,15 +186,15 @@ def test_bake_with_no_console_script(cookies: Cookies, args):
 def test_bake_with_console_script_cli(cookies: Cookies):
     context = {"command_line_interface": "click"}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
-    module_path = os.path.join(project_dir, "cli.py")
+    project_path, project_slug, package_dir = project_info(result)
+    module_path = os.path.join(package_dir, "cli.py")
 
     out = execute(
         [sys.executable, module_path, "main"],
-        project_dir,
+        package_dir,
     )
     assert project_slug in out
 
-    out = execute([sys.executable, module_path, "-h"], project_dir)
+    out = execute([sys.executable, module_path, "-h"], package_dir)
 
     assert "Usage: cli.py" in out
